@@ -1,0 +1,201 @@
+<html><head><base href="https://websim.creation.engine/memory-game/" lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #f0f0f0;
+    --text-color: #333;
+    --button-bg: #4ecdc4;
+    --button-text: #fff;
+  }
+
+  .dark-mode {
+    --bg-color: #333;
+    --text-color: #f0f0f0;
+    --button-bg: #45b7d1;
+    --button-text: #fff;
+  }
+
+  body {
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  #game-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .rectangle {
+    width: 150px;
+    height: 150px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+
+  .rectangle:hover {
+    opacity: 0.8;
+  }
+
+  #red { background-color: #ff6b6b; }
+  #blue { background-color: #4ecdc4; }
+  #green { background-color: #45b7d1; }
+  #yellow { background-color: #feca57; }
+
+  #level, #message {
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  #start-button, #mode-toggle {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    margin: 10px;
+  }
+
+  #start-button:hover, #mode-toggle:hover {
+    opacity: 0.9;
+  }
+
+  #author {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div id="level">Level: 1</div>
+<div id="game-container">
+  <div id="red" class="rectangle"></div>
+  <div id="blue" class="rectangle"></div>
+  <div id="green" class="rectangle"></div>
+  <div id="yellow" class="rectangle"></div>
+</div>
+<div id="message">Click Start to begin!</div>
+<button id="start-button">Start</button>
+<button id="mode-toggle">Dark Mode</button>
+<div id="author">By Harsh Patel</div>
+
+<script>
+  const rectangles = ['red', 'blue', 'green', 'yellow'];
+  let sequence = [];
+  let playerSequence = [];
+  let level = 1;
+
+  const levelDisplay = document.getElementById('level');
+  const message = document.getElementById('message');
+  const startButton = document.getElementById('start-button');
+  const modeToggle = document.getElementById('mode-toggle');
+
+  startButton.addEventListener('click', startGame);
+  modeToggle.addEventListener('click', toggleDarkMode);
+
+  rectangles.forEach(color => {
+    document.getElementById(color).addEventListener('click', () => playerClick(color));
+  });
+
+  function startGame() {
+    sequence = [];
+    playerSequence = [];
+    level = 1;
+    levelDisplay.textContent = `Level: ${level}`;
+    message.textContent = 'Watch the sequence!';
+    startButton.disabled = true;
+    nextRound();
+  }
+
+  function nextRound() {
+    playerSequence = [];
+    addToSequence();
+    playSequence();
+  }
+
+  function addToSequence() {
+    const randomColor = rectangles[Math.floor(Math.random() * rectangles.length)];
+    sequence.push(randomColor);
+  }
+
+  function playSequence() {
+    let i = 0;
+    const interval = setInterval(() => {
+      flashRectangle(sequence[i]);
+      i++;
+      if (i >= sequence.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          message.textContent = 'Your turn!';
+        }, 1000);
+      }
+    }, 1000);
+  }
+
+  function flashRectangle(color) {
+    const rectangle = document.getElementById(color);
+    rectangle.style.opacity = '0.5';
+    setTimeout(() => {
+      rectangle.style.opacity = '1';
+    }, 500);
+  }
+
+  function playerClick(color) {
+    if (startButton.disabled) {
+      playerSequence.push(color);
+      flashRectangle(color);
+      checkSequence();
+    }
+  }
+
+  function checkSequence() {
+    if (playerSequence[playerSequence.length - 1] !== sequence[playerSequence.length - 1]) {
+      gameOver();
+      return;
+    }
+    
+    if (playerSequence.length === sequence.length) {
+      if (playerSequence.length === level) {
+        level++;
+        levelDisplay.textContent = `Level: ${level}`;
+        message.textContent = 'Correct! Next level...';
+        setTimeout(nextRound, 1000);
+      } else {
+        message.textContent = 'Correct! Keep going...';
+      }
+    }
+  }
+
+  function gameOver() {
+    message.textContent = 'Game Over! Click Start to play again.';
+    startButton.disabled = false;
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+      modeToggle.textContent = 'Light Mode';
+    } else {
+      modeToggle.textContent = 'Dark Mode';
+    }
+  }
+</script>
+</body>
+</html>
